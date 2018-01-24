@@ -28,13 +28,16 @@ main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    FlvTag_t flvTag = {0};
-    success = parseFlvTag(fp, &flvTag);
-    if (!success) {
-        fprintf(stderr, "%s:%d %s parseFlvHeader %s failed\n", __FILE__, __LINE__, __FUNCTION__, argv[0]);
-        fclose(fp);
-        exit(EXIT_FAILURE);
-    }
-
+	FlvTag_t flvTag = { 0 };
+	for (int i = 0; i < 10; i++) {
+		free(flvTag.tagData);
+		memset(&flvTag, 0, sizeof(flvTag));
+		bool success = parseFlvTag(fp, &flvTag);
+		if (!success) {
+			fprintf(stderr, "%s:%d %s parseFlvHeader %s failed\n", __FILE__, __LINE__, __FUNCTION__, argv[0]);
+			fclose(fp);
+			exit(EXIT_FAILURE);
+		}
+	}
     exit(EXIT_SUCCESS);
 }
