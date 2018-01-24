@@ -91,6 +91,7 @@ parseFlvTag(FILE *fp, FlvTag_t *p_flvTag)
 {
     bool success = false;
 
+    printf("%ld:\n", ftell(fp));
     success = readFlvPreviousTagSize(fp, p_flvTag);
     if (success) {
         printf("flv Previous Tag Size: %u\n", p_flvTag->PreviousTagSize);
@@ -100,6 +101,7 @@ parseFlvTag(FILE *fp, FlvTag_t *p_flvTag)
         return false;
     }
 
+    printf("%ld:\n", ftell(fp));
     success = readFlvTagHeader(fp, p_flvTag);
     if (success) {
         printf("flv Tag Header Filter: %u\n", p_flvTag->tagHeader.Filter);
