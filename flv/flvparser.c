@@ -1,6 +1,7 @@
 #include "flvparser.h"
 #include "flvparsescriptdata.h"
 #include "flvparseaudiodata.h"
+#include "flvparsevideodata.h"
 
 #include <errno.h>
 #include <stdint.h>
@@ -142,7 +143,7 @@ parseFlvTag(FILE *fp, FlvTag_t *p_flvTag)
     	parseFlvAudioData(p_flvTag);
         break;
     case 0x09:
-    	printf("Video\n\n");
+        parseFlvVideoData(p_flvTag);
         break;
     case 0x12:
         parseFlvScriptData(p_flvTag);
