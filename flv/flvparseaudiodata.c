@@ -9,22 +9,11 @@ typedef struct {
     uint8_t AACPacketType;         // 0 = AAC sequence header; 1 = AAC raw
 } FlvAudioTagHeader_t;
 
-bool
-parseFlvAudioData(FlvTag_t *p_flv_tag)
+static void
+printFlvAudioData(const FlvAudioTagHeader_t *p_audioHeader)
 {
-    uint8_t *p = p_flv_tag->tagData;
-    FlvAudioTagHeader_t audio_header = {0};
-    audio_header.SoundFormat = (*p & 0xf0) >> 4;
-    audio_header.SoundRate = (*p && 0x0c) >> 2;
-    audio_header.SoundSize = (*p && 0x02) >> 1;
-    audio_header.SoundType = *p && 0x01;
-    p++;
-    if (audio_header.SoundFormat == 10) {
-        audio_header.AACPacketType = *p;
-        p++;
-    }
-    printf("flv Tag Audio Header SoundFormat: %d (", (int)audio_header.SoundFormat);
-    switch (audio_header.SoundFormat) {
+    printf("flv Tag Audio Header SoundFormat: %d (", (int)p_audioHeader->SoundFormat);
+    switch (p_audioHeader->SoundFormat) {
     case 0:
         printf("Linear PCM, platform endian");
         break;
@@ -69,8 +58,8 @@ parseFlvAudioData(FlvTag_t *p_flv_tag)
         break;
     }
     printf(")\n");
-    printf("flv Tag Audio Header SoundRate: %d (", (int)audio_header.SoundRate);
-    switch (audio_header.SoundRate) {
+    printf("flv Tag Audio Header SoundRate: %d (", (int)p_audioHeader->SoundRate);
+    switch (p_audioHeader->SoundRate) {
     case 0:
         printf("5.5 kHz");
         break;
@@ -85,8 +74,8 @@ parseFlvAudioData(FlvTag_t *p_flv_tag)
         break;
     }
     printf(")\n");
-    printf("flv Tag Audio Header SoundSize: %d (", (int)audio_header.SoundSize);
-    switch (audio_header.SoundSize) {
+    printf("flv Tag Audio Header SoundSize: %d (", (int)p_audioHeader->SoundSize);
+    switch (p_audioHeader->SoundSize) {
     case 0:
         printf("8-bit samples");
         break;
@@ -95,8 +84,8 @@ parseFlvAudioData(FlvTag_t *p_flv_tag)
         break;
     }
     printf(")\n");
-    printf("flv Tag Audio Header SoundType: %d (", (int)audio_header.SoundType);
-    switch (audio_header.SoundType) {
+    printf("flv Tag Audio Header SoundType: %d (", (int)p_audioHeader->SoundType);
+    switch (p_audioHeader->SoundType) {
     case 0:
         printf("AAC sequence header");
         break;
@@ -105,9 +94,9 @@ parseFlvAudioData(FlvTag_t *p_flv_tag)
         break;
     }
     printf(")\n");
-    if (audio_header.SoundFormat == 10) {
-        printf("flv Tag Audio Header AACPacketType: %d (", (int)audio_header.AACPacketType);
-        switch (audio_header.AACPacketType) {
+    if (p_audioHeader->SoundFormat == 10) {
+        printf("flv Tag Audio Header AACPacketType: %d (", (int)p_audioHeader->AACPacketType);
+        switch (p_audioHeader->AACPacketType) {
         case 0:
             printf("AAC sequence header");
             break;
@@ -118,5 +107,19 @@ parseFlvAudioData(FlvTag_t *p_flv_tag)
         printf(")\n");
     }
     printf("\n");
+}
+
+bool
+parseFlvAudioData(const uint8_t *buf)
+{
+    FlvAudioTagHeader_t audio_header = {0};
+    audio_header.SoundFormat = (buf[0] & 0xf0) >> 4;
+    audio_header.SoundRate = (buf[0] && 0x0c) >> 2;
+    audio_header.SoundSize = (buf[0] && 0x02) >> 1;
+    audio_header.SoundType = buf[0] && 0x01;
+    if (audio_header.SoundFormat == 10) {
+        audio_header.AACPacketType = buf[1];
+    }
+    printFlvAudioData(&audio_header);
     return true;
 }

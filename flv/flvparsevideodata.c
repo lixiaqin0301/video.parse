@@ -8,19 +8,11 @@ typedef struct {
     int32_t CompositionTime;     // IF CodecID == 7: IF AVCPacketType == 1 Composition time offset ELSE 0
 } FlvVideoTagHeader_t;
 
-bool
-parseFlvVideoData(FlvTag_t *p_flv_tag)
+static void
+printFlvVideoData(const FlvVideoTagHeader_t *p_videoHeader)
 {
-    uint8_t *buf = p_flv_tag->tagData;
-    FlvVideoTagHeader_t video_header = { 0 };
-    video_header.FrameType = (buf[0] & 0xf0) >> 4;
-    video_header.CodecID = buf[0] && 0x0f;
-    if (video_header.CodecID == 7) {
-        video_header.AVCPacketType = buf[1];
-        video_header.CompositionTime = buf[2] << 16 | buf[3] << 8 | buf[4];
-    }
-    printf("flv Tag Video Header Frame Type: %d ", (int) video_header.FrameType);
-    switch (video_header.FrameType) {
+    printf("flv Tag Video Header Frame Type: %d (", (int)p_videoHeader->FrameType);
+    switch (p_videoHeader->FrameType) {
     case 1:
         printf("key frame (for AVC, a seekable frame)");
         break;
@@ -37,9 +29,9 @@ parseFlvVideoData(FlvTag_t *p_flv_tag)
         printf("video info/command frame");
         break;
     }
-    printf("\n");
-    printf("flv Tag Video Header CodecID: %d (", (int) video_header.CodecID);
-    switch (video_header.CodecID) {
+    printf(")\n");
+    printf("flv Tag Video Header CodecID: %d (", (int)p_videoHeader->CodecID);
+    switch (p_videoHeader->CodecID) {
     case 2:
         printf("Sorenson H.263");
         break;
@@ -60,9 +52,9 @@ parseFlvVideoData(FlvTag_t *p_flv_tag)
         break;
     }
     printf(")\n");
-    if (video_header.CodecID == 7) {
-        printf("flv Tag Video Header AVCPacketType: %d ", (int) video_header.AVCPacketType);
-        switch (video_header.AVCPacketType) {
+    if (p_videoHeader->CodecID == 7) {
+        printf("flv Tag Video Header AVCPacketType: %d (", (int)p_videoHeader->AVCPacketType);
+        switch (p_videoHeader->AVCPacketType) {
         case 0:
             printf("AVC sequence header");
             break;
@@ -73,9 +65,21 @@ parseFlvVideoData(FlvTag_t *p_flv_tag)
             printf("AVC end of sequence (lower level NALU sequence ender is not required or supported)");
             break;
         }
-        printf("\n");
-        printf("flv Tag Video Header CompositionTime: %d\n", (int) video_header.CompositionTime);
+        printf(")\n");
+        printf("flv Tag Video Header CompositionTime: %d\n", (int)p_videoHeader->CompositionTime);
     }
     printf("\n");
+}
+
+bool parseFlvVideoData(const uint8_t *buf)
+{
+    FlvVideoTagHeader_t video_header = {0};
+    video_header.FrameType = (buf[0] & 0xf0) >> 4;
+    video_header.CodecID = buf[0] && 0x0f;
+    if (video_header.CodecID == 7) {
+        video_header.AVCPacketType = buf[1];
+        video_header.CompositionTime = buf[2] << 16 | buf[3] << 8 | buf[4];
+    }
+    printFlvVideoData(&video_header);
     return true;
 }

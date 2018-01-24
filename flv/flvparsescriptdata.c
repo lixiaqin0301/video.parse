@@ -1,5 +1,5 @@
-#include "flvparser.h"
 #include "flvparsescriptdata.h"
+#include "flvparser.h"
 
 #include <errno.h>
 #include <stdint.h>
@@ -12,7 +12,7 @@
 #define TAG_HEAD_LEN 11
 
 static double
-hexStr2double(uint8_t *hex)
+hexStr2double(const uint8_t *hex)
 {
     char hexstr[8 * 2] = {0};
     for (unsigned int i = 0; i < 8; i++) {
@@ -24,7 +24,7 @@ hexStr2double(uint8_t *hex)
 }
 
 static uint32_t
-parseFlvScriptDataScriptDataValue(uint8_t *p_meta, uint32_t offset, int depth)
+parseFlvScriptDataScriptDataValue(const uint8_t *p_meta, uint32_t offset, int depth)
 {
     depth += 1;
     uint8_t amf_type = p_meta[offset];
@@ -130,13 +130,13 @@ parseFlvScriptDataScriptDataValue(uint8_t *p_meta, uint32_t offset, int depth)
 }
 
 bool
-parseFlvScriptData(FlvTag_t *p_flv_tag)
+parseFlvScriptData(const uint8_t *buf, uint32_t buflen)
 {
     printf("flv Tag Script Data:\n");
     uint32_t offset = 0;
-    while (offset < p_flv_tag->tagHeader.DataSize) {
+    while (offset < buflen) {
         printf("    ");
-        offset = parseFlvScriptDataScriptDataValue(p_flv_tag->tagData, offset, 0);
+        offset = parseFlvScriptDataScriptDataValue(buf, offset, 0);
         printf("\n");
     }
     printf("\n");

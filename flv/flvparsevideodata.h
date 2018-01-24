@@ -4,6 +4,6 @@
 #include "flvparser.h"
 #include <stdbool.h>
 
-bool parseFlvVideoData(FlvTag_t *p_flv_tag);
+bool parseFlvVideoData(const uint8_t *buf);
 
 #endif  //_FLV_PARSE_VIDEO_DATA_H_2018

@@ -18,26 +18,21 @@ main(int argc, char **argv)
         fprintf(stderr, "%s:%d %s open %s failed: %s\n", __FILE__, __LINE__, __FUNCTION__, argv[1], strerror(errno));
         exit(EXIT_FAILURE);
     }
+
     printf("flv file path: %s\n\n", argv[1]);
 
-    FlvHeader_t flvHeader = {0};
-    bool success = parseFlvHeader(fp, &flvHeader);
-    if (!success) {
+    if (!parseFlvHeader(fp)) {
         fprintf(stderr, "%s:%d %s parseFlvHeader %s failed\n", __FILE__, __LINE__, __FUNCTION__, argv[0]);
         fclose(fp);
         exit(EXIT_FAILURE);
     }
 
-	FlvTag_t flvTag = { 0 };
-	for (int i = 0; i < 10; i++) {
-		free(flvTag.tagData);
-		memset(&flvTag, 0, sizeof(flvTag));
-		bool success = parseFlvTag(fp, &flvTag);
-		if (!success) {
-			fprintf(stderr, "%s:%d %s parseFlvHeader %s failed\n", __FILE__, __LINE__, __FUNCTION__, argv[0]);
-			fclose(fp);
-			exit(EXIT_FAILURE);
-		}
-	}
+    for (;;) {
+        if (!parseFlvTag(fp)) {
+            fprintf(stderr, "%s:%d %s parseFlvHeader %s failed\n", __FILE__, __LINE__, __FUNCTION__, argv[0]);
+            fclose(fp);
+            exit(EXIT_FAILURE);
+        }
+    }
     exit(EXIT_SUCCESS);
 }
