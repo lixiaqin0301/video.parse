@@ -1,10 +1,10 @@
 #include "flvparser.h"
 
-#include <stdio.h>
-#include <string.h>
 #include <errno.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define PREVIOUS_TAG_SIZE_LEN 4
 #define FLV_HEAD_LEN 9
@@ -14,7 +14,7 @@
 static bool
 readFlvPreviousTagSize(FILE *fp, FlvTag_t *p_flv_tag)
 {
-    uint8_t previousTagSizeBuf[PREVIOUS_TAG_SIZE_LEN] = { 0 };
+    uint8_t previousTagSizeBuf[PREVIOUS_TAG_SIZE_LEN] = {0};
     size_t readBytes = fread(previousTagSizeBuf, sizeof(uint8_t), PREVIOUS_TAG_SIZE_LEN, fp);
     if (readBytes != PREVIOUS_TAG_SIZE_LEN) {
         fprintf(stderr, "%s:%d %s fread %p return %lu != %d: %s\n", __FILE__, __LINE__, __FUNCTION__, fp, readBytes, PREVIOUS_TAG_SIZE_LEN, strerror(errno));
@@ -28,7 +28,7 @@ readFlvPreviousTagSize(FILE *fp, FlvTag_t *p_flv_tag)
 static bool
 readFlvTagHeader(FILE *fp, FlvTag_t *p_flv_tag)
 {
-    unsigned char tagHeader[TAG_HEAD_LEN] = { 0 };
+    unsigned char tagHeader[TAG_HEAD_LEN] = {0};
     size_t readBytes = fread(tagHeader, sizeof(unsigned char), TAG_HEAD_LEN, fp);
     if (readBytes != TAG_HEAD_LEN) {
         fprintf(stderr, "%s:%d %s fread %p return %lu != %d: %s\n", __FILE__, __LINE__, __FUNCTION__, fp, readBytes, TAG_HEAD_LEN, strerror(errno));
@@ -40,17 +40,17 @@ readFlvTagHeader(FILE *fp, FlvTag_t *p_flv_tag)
     p_flv_tag->tagHeader.streamID = tagHeader[8] | tagHeader[9] << 8 | tagHeader[10] << 16;
 
     switch (p_flv_tag->tagHeader.type) {
-        case 0x12:
-        case 0x09:
-        case 0x08:
-            return true;
-        default:
-            return false;
+    case 0x12:
+    case 0x09:
+    case 0x08:
+        return true;
+    default:
+        return false;
     }
 }
 
 static double
-hexStr2double(uint8_t* hex)
+hexStr2double(uint8_t *hex)
 {
     char hexstr[8 * 2] = {0};
     for (unsigned int i = 0; i < 8; i++) {
@@ -58,7 +58,7 @@ hexStr2double(uint8_t* hex)
     }
 
     double ret = 0;
-    sscanf(hexstr, "%llx", (unsigned long long*) &ret);
+    sscanf(hexstr, "%llx", (unsigned long long *)&ret);
     return ret;
 }
 
@@ -69,15 +69,15 @@ parseFlvMetaDataScriptDataValue(uint8_t *p_meta, uint32_t offset, int depth)
     uint8_t amf_type = p_meta[offset];
     offset += 1;
 
-    if (amf_type == 0x00) {        // Number
+    if (amf_type == 0x00) {  // Number
         double numValue = hexStr2double(p_meta + offset);
         offset += 8;
         printf("%f", numValue);
-    } else if (amf_type == 0x01) { // Boolean
+    } else if (amf_type == 0x01) {  // Boolean
         uint8_t boolValue = p_meta[offset];
         offset += 1;
         printf("%hhu", boolValue);
-    } else if (amf_type == 0x02) { // String
+    } else if (amf_type == 0x02) {  // String
         uint16_t StringLength = p_meta[offset + 1] | p_meta[offset] << 8;
         offset += 2;
         char StringData[StringLength + 1];
@@ -85,7 +85,7 @@ parseFlvMetaDataScriptDataValue(uint8_t *p_meta, uint32_t offset, int depth)
         memcpy(StringData, p_meta + offset, StringLength);
         offset += StringLength;
         printf("%s", StringData);
-    } else if (amf_type == 0x03) { // Object
+    } else if (amf_type == 0x03) {  // Object
         for (;;) {
             // List terminator
             if (p_meta[offset] == 0 && p_meta[offset + 1] == 0 && p_meta[offset + 2] == 9) {
@@ -106,17 +106,17 @@ parseFlvMetaDataScriptDataValue(uint8_t *p_meta, uint32_t offset, int depth)
             offset = parseFlvMetaDataScriptDataValue(p_meta, offset, depth);
             printf("\n");
         }
-    } else if (amf_type == 0x04) { // MovieClip (reserved, not supported)
+    } else if (amf_type == 0x04) {  // MovieClip (reserved, not supported)
         printf("MovieClip");
-    } else if (amf_type == 0x05) { // Null
+    } else if (amf_type == 0x05) {  // Null
         printf("Null");
-    } else if (amf_type == 0x06) { // Undefined
+    } else if (amf_type == 0x06) {  // Undefined
         printf("Undefined");
-    } else if (amf_type == 0x07) { // Reference
+    } else if (amf_type == 0x07) {  // Reference
         uint16_t refValue = p_meta[offset + 1] | p_meta[offset] << 8;
         offset += 2;
         printf("%hu", refValue);
-    } else if (amf_type == 0x08) { // ECMA array
+    } else if (amf_type == 0x08) {  // ECMA array
         uint32_t ECMAArrayLength = p_meta[offset + 3] | p_meta[offset + 2] << 8 | p_meta[offset + 1] << 16 | p_meta[offset];
         offset += 4;
         printf("[(%u)", ECMAArrayLength);
@@ -139,9 +139,9 @@ parseFlvMetaDataScriptDataValue(uint8_t *p_meta, uint32_t offset, int depth)
             printf("    ");
         }
         printf("]");
-    } else if (amf_type == 0x09) { // Object end marker
+    } else if (amf_type == 0x09) {  // Object end marker
         printf("Object end marker ");
-    } else if (amf_type == 0x0a) { // Strict array
+    } else if (amf_type == 0x0a) {  // Strict array
         uint32_t StrictArrayLength = p_meta[offset + 3] | p_meta[offset + 2] << 8 | p_meta[offset + 1] << 16 | p_meta[offset];
         offset += 4;
         printf("[(%u) ", StrictArrayLength);
@@ -150,13 +150,13 @@ parseFlvMetaDataScriptDataValue(uint8_t *p_meta, uint32_t offset, int depth)
             printf(" ");
         }
         printf("]");
-    } else if (amf_type == 0x0b) { // Date
+    } else if (amf_type == 0x0b) {  // Date
         double dateTime = hexStr2double(p_meta + offset);
         offset += 8;
         int16_t localDateTimeOffset = p_meta[offset + 1] | p_meta[offset] << 8;
         offset += 2;
         printf("%f %hu ", dateTime, localDateTimeOffset);
-    } else if (amf_type == 0x0c) { // Long string
+    } else if (amf_type == 0x0c) {  // Long string
         uint32_t strLen = p_meta[offset + 3] | p_meta[offset + 2] << 8 | p_meta[offset + 1] << 16 | p_meta[offset];
         offset += strLen;
         char strValue[strLen + 1];
@@ -181,10 +181,9 @@ parseFlvMetaData(FILE *fp, FlvTag_t *p_flv_tag)
     return true;
 }
 
-bool
-parseFlvHeader(FILE *fp, FlvHeader_t *p_flvHeader)
+bool parseFlvHeader(FILE *fp, FlvHeader_t *p_flvHeader)
 {
-    unsigned char buf[FLV_HEAD_LEN] = { 0 };
+    unsigned char buf[FLV_HEAD_LEN] = {0};
     size_t readBytes = fread(buf, sizeof(unsigned char), FLV_HEAD_LEN, fp);
     if (readBytes != FLV_HEAD_LEN) {
         fprintf(stderr, "%s:%d %s fread %p return %lu < %d: %s\n", __FILE__, __LINE__, __FUNCTION__, fp, readBytes, FLV_HEAD_LEN, strerror(errno));
@@ -214,8 +213,7 @@ parseFlvHeader(FILE *fp, FlvHeader_t *p_flvHeader)
     return true;
 }
 
-bool
-parseFlvTag(FILE *fp, FlvTag_t *p_flvTag)
+bool parseFlvTag(FILE *fp, FlvTag_t *p_flvTag)
 {
     bool success = false;
 
@@ -246,7 +244,7 @@ parseFlvTag(FILE *fp, FlvTag_t *p_flvTag)
         }
         printf(")\n");
         printf("flv Tag Header Datasize: %u\n", p_flvTag->tagHeader.dataSize);
-        printf("flv Tag Header Timestamp(include timestamp_ex): %u\n",p_flvTag->tagHeader.timeStamp);
+        printf("flv Tag Header Timestamp(include timestamp_ex): %u\n", p_flvTag->tagHeader.timeStamp);
         printf("flv Tag Header StreamID: %u\n", p_flvTag->tagHeader.streamID);
     } else {
         fprintf(stderr, "%s:%d %s readFlvTagHeader failed!\n", __FILE__, __LINE__, __FUNCTION__);
@@ -274,5 +272,3 @@ parseFlvTag(FILE *fp, FlvTag_t *p_flvTag)
     }
     return true;
 }
-
-
