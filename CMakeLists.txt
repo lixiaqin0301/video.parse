@@ -7,3 +7,4 @@ set(CMAKE_C_FLAGS_RELEASE "$ENV{CFLAGS} -O3 -Wall")
 # 指定生成目标
 add_executable(flvparse flv/flvparser.c flv/flvparsescriptdata.c flv/flvparseaudiodata.c flv/flvparsevideodata.c flv/main.c)
 add_executable(mp4parse mp4/mp4parse.c)
+add_executable(mp4keyframes mp4/mp4keyframes.c)
