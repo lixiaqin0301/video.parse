@@ -129,8 +129,7 @@ parseFlvScriptDataScriptDataValue(const uint8_t *p_meta, uint32_t offset, int de
     return offset;
 }
 
-bool
-parseFlvScriptData(const uint8_t *buf, uint32_t buflen)
+bool parseFlvScriptData(const uint8_t *buf, uint32_t buflen)
 {
     printf("flv Tag Script Data:\n");
     uint32_t offset = 0;

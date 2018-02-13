@@ -47,16 +47,19 @@ printFlvHeader(long offset, const FlvHeader_t *p_flvHeader)
     printf("\n");
 }
 
-bool
-parseFlvHeader(FILE *fp)
+bool parseFlvHeader(FILE *fp)
 {
     long offset = ftell(fp);
     const int FLV_HEAD_LEN = 9;
     unsigned char buf[FLV_HEAD_LEN];
     size_t readBytes = fread(buf, sizeof(unsigned char), FLV_HEAD_LEN, fp);
     if (readBytes != FLV_HEAD_LEN) {
-        fprintf(stderr, "%s:%d %s fread %p return %lu < %d: %s\n", __FILE__, __LINE__, __FUNCTION__, fp, readBytes, FLV_HEAD_LEN, strerror(errno));
-        return false;
+        if (!feof(fp)) {
+            fprintf(stderr, "%s:%d %s fread %p return %lu < %d: %s\n", __FILE__, __LINE__, __FUNCTION__, fp, readBytes, FLV_HEAD_LEN, strerror(errno));
+            return false;
+        } else {
+            exit(EXIT_SUCCESS);
+        }
     }
     FlvHeader_t flv_header = {0};
     flv_header.Signature[0] = buf[0];
@@ -94,11 +97,13 @@ parseFlvPreviousTagSize(FILE *fp, FlvTag_t *p_flvTag)
     long offset = ftell(fp);
     uint8_t previousTagSizeBuf[PREVIOUS_TAG_SIZE_LEN];
     size_t readBytes = fread(previousTagSizeBuf, sizeof(uint8_t), PREVIOUS_TAG_SIZE_LEN, fp);
-    if (readBytes != PREVIOUS_TAG_SIZE_LEN && readBytes != 0) {
-        fprintf(stderr, "%s:%d %s fread %p return %lu != %d: %s\n", __FILE__, __LINE__, __FUNCTION__, fp, readBytes, PREVIOUS_TAG_SIZE_LEN, strerror(errno));
-        return false;
-    } else if (readBytes == 0) {
-        exit(EXIT_SUCCESS);
+    if (readBytes != PREVIOUS_TAG_SIZE_LEN) {
+        if (!feof(fp)) {
+            fprintf(stderr, "%s:%d %s fread %p return %lu != %d: %s\n", __FILE__, __LINE__, __FUNCTION__, fp, readBytes, PREVIOUS_TAG_SIZE_LEN, strerror(errno));
+            return false;
+        } else {
+            exit(EXIT_SUCCESS);
+        }
     }
     p_flvTag->PreviousTagSize = previousTagSizeBuf[3] | previousTagSizeBuf[2] << 8 | previousTagSizeBuf[1] << 16 | previousTagSizeBuf[0] << 24;
     printFlvPreviousTagSize(offset, p_flvTag);
@@ -145,11 +150,13 @@ parseFlvTagHeader(FILE *fp, FlvTag_t *p_flvTag)
     long offset = ftell(fp);
     unsigned char tagHeader[TAG_HEAD_LEN] = {0};
     size_t readBytes = fread(tagHeader, sizeof(unsigned char), TAG_HEAD_LEN, fp);
-    if (readBytes != TAG_HEAD_LEN && readBytes != 0) {
-        fprintf(stderr, "%s:%d %s fread %p return %lu != %d: %s\n", __FILE__, __LINE__, __FUNCTION__, fp, readBytes, TAG_HEAD_LEN, strerror(errno));
-        return false;
-    } else if (readBytes == 0) {
-        exit(EXIT_SUCCESS);
+    if (readBytes != TAG_HEAD_LEN) {
+        if (!feof(fp)) {
+            fprintf(stderr, "%s:%d %s fread %p return %lu != %d: %s\n", __FILE__, __LINE__, __FUNCTION__, fp, readBytes, TAG_HEAD_LEN, strerror(errno));
+            return false;
+        } else {
+            exit(EXIT_SUCCESS);
+        }
     }
 
     p_flvTag->tagHeader.Reserved = (tagHeader[0] & 0xc0) >> 6;
@@ -176,8 +183,7 @@ parseFlvTagHeader(FILE *fp, FlvTag_t *p_flvTag)
     return true;
 }
 
-bool
-parseFlvTag(FILE *fp)
+bool parseFlvTag(FILE *fp)
 {
     FlvTag_t flv_tag = {0};
     bool success = parseFlvPreviousTagSize(fp, &flv_tag);
@@ -195,9 +201,13 @@ parseFlvTag(FILE *fp)
     flv_tag.tagData = calloc(flv_tag.tagHeader.DataSize, 1);
     size_t readBytes = fread(flv_tag.tagData, 1, flv_tag.tagHeader.DataSize, fp);
     if (readBytes != flv_tag.tagHeader.DataSize) {
-        fprintf(stderr, "%s:%d %s fread %p return %lu != %d: %s\n", __FILE__, __LINE__, __FUNCTION__, fp, readBytes, flv_tag.tagHeader.DataSize, strerror(errno));
         free(flv_tag.tagData);
-        return false;
+        if (!feof(fp)) {
+            fprintf(stderr, "%s:%d %s fread %p return %lu != %d: %s\n", __FILE__, __LINE__, __FUNCTION__, fp, readBytes, flv_tag.tagHeader.DataSize, strerror(errno));
+            return false;
+        } else {
+            exit(EXIT_SUCCESS);
+        }
     }
     switch (flv_tag.tagHeader.TagType) {
     case 0x08:

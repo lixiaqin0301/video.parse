@@ -109,8 +109,7 @@ printFlvAudioData(const FlvAudioTagHeader_t *p_audioHeader)
     printf("\n");
 }
 
-bool
-parseFlvAudioData(const uint8_t *buf)
+bool parseFlvAudioData(const uint8_t *buf)
 {
     FlvAudioTagHeader_t audio_header = {0};
     audio_header.SoundFormat = (buf[0] & 0xf0) >> 4;
